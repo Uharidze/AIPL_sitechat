@@ -5,6 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Chat Widget</title>
     <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
         #chat-widget {
             position: fixed;
             bottom: 20px;
@@ -69,4 +72,56 @@
         <div id="chat-header">
             <h4>Support Chat</h4>
             <button id="close-chat">×</button>
-        </d
+        </div>
+        <div id="chat-body">
+            <div id="chat-messages"></div>
+        </div>
+        <div id="chat-footer">
+            <input type="text" id="chat-input" placeholder="Type a message...">
+            <button id="send-message">Send</button>
+        </div>
+    </div>
+    <button id="open-chat">Chat with us</button>
+
+    <script>
+        document.getElementById('open-chat').addEventListener('click', function() {
+            document.getElementById('chat-widget').style.display = 'flex';
+            this.style.display = 'none';
+        });
+
+        document.getElementById('close-chat').addEventListener('click', function() {
+            document.getElementById('chat-widget').style.display = 'none';
+            document.getElementById('open-chat').style.display = 'block';
+        });
+
+        document.getElementById('send-message').addEventListener('click', function() {
+            const message = document.getElementById('chat-input').value;
+            if (message.trim() !== '') {
+                const messageElement = document.createElement('div');
+                messageElement.textContent = message;
+                document.getElementById('chat-messages').appendChild(messageElement);
+                document.getElementById('chat-input').value = '';
+                // Отправка сообщения на сервер для обработки ботом
+                sendMessageToServer(message);
+            }
+        });
+
+        function sendMessageToServer(message) {
+            fetch('https://your-n8n-server-url/webhook/chat', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ message: message })
+            })
+            .then(response => response.json())
+            .then(data => {
+                const botMessageElement = document.createElement('div');
+                botMessageElement.textContent = data.response;
+                document.getElementById('chat-messages').appendChild(botMessageElement);
+            })
+            .catch(error => console.error('Error:', error));
+        }
+    </script>
+</body>
+</html>
