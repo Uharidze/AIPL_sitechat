@@ -1,127 +1,416 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chat Widget</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-        }
-        #chat-widget {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            width: 300px;
-            max-height: 400px;
-            border: 1px solid #ccc;
-            border-radius: 10px;
-            background-color: #fff;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-            display: none;
-            flex-direction: column;
-            z-index: 1000;
-        }
-        #chat-header {
-            padding: 10px;
-            background-color: #007bff;
-            color: #fff;
-            border-top-left-radius: 10px;
-            border-top-right-radius: 10px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        #chat-body {
-            padding: 10px;
-            overflow-y: auto;
-            flex: 1;
-        }
-        #chat-footer {
-            padding: 10px;
-            display: flex;
-            justify-content: space-between;
-        }
-        #chat-input {
-            width: 80%;
-            padding: 5px;
-        }
-        #send-message {
-            width: 15%;
-            background-color: #007bff;
-            color: #fff;
-            border: none;
-            border-radius: 5px;
-        }
-        #open-chat {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            background-color: #007bff;
-            color: #fff;
-            border: none;
-            border-radius: 50%;
-            padding: 10px 20px;
-            cursor: pointer;
-            z-index: 1000;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <title>Chat Window</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Manrope&display=swap');
+    /* Основные стили */
+    body {
+      margin: 0;
+      font-family: 'Manrope', Arial, sans-serif;
+      background-color: #141414;
+      color: #e0e0e0;
+    }
+
+    /* Иконка запуска чата */
+    .chat-launcher {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      width: 60px;
+      height: 60px;
+      background-color: #fec13c;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+      z-index: 1000;
+      animation: pulse 1.5s infinite;
+    }
+
+    .chat-launcher img {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+    }
+
+    /* Анимация пульсации */
+    @keyframes pulse {
+      0% {
+        transform: scale(1);
+        box-shadow: 0 0 5px rgba(254, 193, 60, 0.7);
+      }
+      50% {
+        transform: scale(1.05);
+        box-shadow: 0 0 15px rgba(254, 193, 60, 1);
+      }
+      100% {
+        transform: scale(1);
+        box-shadow: 0 0 5px rgba(254, 193, 60, 0.7);
+      }
+    }
+
+    /* Сообщение сбоку от иконки */
+    .chat-prompt {
+      position: fixed;
+      bottom: 90px;
+      right: 20px;
+      width: 250px;
+      background-color: #1f1f1f;
+      border: 1px solid #fec13c;
+      border-radius: 10px;
+      display: none;
+      align-items: center;
+      padding: 10px;
+      cursor: pointer;
+      z-index: 999;
+    }
+
+    .chat-prompt img {
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      margin-right: 10px;
+      margin-bottom: 50%;
+    }
+
+    .chat-prompt .prompt-message {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .prompt-name {
+      font-weight: bold;
+      color: #fec13c;
+    }
+
+    .prompt-text {
+      color: #e0e0e0;
+    }
+
+    /* Окно чата */
+    .chat-window {
+      position: fixed;
+      bottom: 90px;
+      right: 20px;
+      width: 350px;
+      height: 500px;
+      max-width: 90%;
+      max-height: 80%;
+      border: 1px solid #fec13c;
+      border-radius: 10px;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+      overflow: hidden;
+      background-color: #1f1f1f;
+      transform: scaleY(0);
+      transform-origin: bottom;
+      transition: transform 0.3s ease;
+      z-index: 998;
+    }
+
+    /* Адаптивность для мобильных устройств */
+    @media (max-width: 600px) {
+      .chat-window {
+        width: 100%;
+        height: 100%;
+        bottom: 0;
+        right: 0;
+        border-radius: 0;
+      }
+
+      .chat-launcher {
+        bottom: 10px;
+        right: 10px;
+      }
+
+      .chat-prompt {
+        bottom: 80px;
+        right: 10px;
+        width: 200px;
+      }
+    }
+
+    /* Остальные стили */
+    .chat-window.open {
+      transform: scaleY(1);
+    }
+
+    .chat-launcher.no-animation {
+      animation: none;
+    }
+
+    .chat-header {
+      background-color: #fec13c;
+      padding: 10px;
+      display: flex;
+      align-items: center;
+    }
+
+    .chat-header img {
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      margin-right: 10px;
+    }
+
+    .chat-header span {
+      font-weight: bold;
+      color: #141414;
+    }
+
+    .chat-messages {
+      flex-grow: 1;
+      padding: 10px;
+      overflow-y: auto;
+      background-color: #1f1f1f;
+    }
+
+    .message {
+      margin: 10px 0;
+      padding: 10px;
+      border-radius: 10px;
+      max-width: 70%;
+      white-space: pre-wrap;
+    }
+
+    .bot-message {
+      background-color: #fec13c;
+      color: #000;
+      align-self: flex-start;
+      margin-right: auto;
+    }
+
+    .user-message {
+      background-color: #e0e0e0;
+      color: #000;
+      align-self: flex-end;
+      margin-left: auto;
+    }
+
+    .chat-input {
+      display: flex;
+      border-top: 1px solid #fec13c;
+    }
+
+    .chat-input input {
+      flex-grow: 1;
+      padding: 10px;
+      border: none;
+      background-color: #2a2a2a;
+      color: #e0e0e0;
+    }
+
+    .chat-input button {
+      padding: 10px;
+      background-color: #fec13c;
+      color: #141414;
+      border: none;
+      cursor: pointer;
+    }
+
+    .chat-input button:hover {
+      background-color: #e0b800;
+    }
+
+    /* Стили для формы контактов */
+    .contact-form {
+      display: flex;
+      flex-direction: column;
+      width: 100%;
+    }
+
+    .contact-form input {
+      margin: 5px 10px;
+      padding: 10px;
+      border: none;
+      border-radius: 10px;
+      background-color: #2a2a2a;
+      color: #e0e0e0;
+    }
+
+    .contact-form button {
+      margin: 5px 10px 10px 10px;
+      padding: 10px;
+      background-color: #fec13c;
+      color: #141414;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+    }
+
+    .contact-form button:hover {
+      background-color: #2a2a2a;
+      color: #e0e0e0;
+    }
+  </style>
 </head>
 <body>
-    <div id="chat-widget">
-        <div id="chat-header">
-            <h4>Support Chat</h4>
-            <button id="close-chat">×</button>
-        </div>
-        <div id="chat-body">
-            <div id="chat-messages"></div>
-        </div>
-        <div id="chat-footer">
-            <input type="text" id="chat-input" placeholder="Type a message...">
-            <button id="send-message">Send</button>
-        </div>
+
+  <!-- Иконка запуска чата -->
+  <div class="chat-launcher pulsate" onclick="toggleChat()">
+    <img src="https://firebasestorage.googleapis.com/v0/b/aipl-32794.appspot.com/o/%D0%9B%D0%BE%D0%B3%D0%BE%20%D0%BA%D0%B2%D0%B0%D0%B4%D1%80%D0%B0%D1%82%20%D1%81%20%D1%87%D0%B5%D1%80%D0%BD%D1%8B%D0%BC%20%D1%84%D0%BE%D0%BD%D0%BE%D0%BC.png?alt=media&token=784173ac-1420-4662-b8fa-d03ef91ea637" alt="Chat Icon">
+  </div>
+
+  <!-- Сообщение сбоку от иконки -->
+  <div class="chat-prompt" id="chatPrompt" onclick="toggleChat()">
+    <img src="https://firebasestorage.googleapis.com/v0/b/aipl-32794.appspot.com/o/photo_2024-10-22%2023.59.16.jpeg?alt=media&token=1de6b548-4608-4c70-b895-844193e10c22" alt="Profile Icon">
+    <div class="prompt-message">
+      <span class="prompt-name">Иван Юхарин</span>
+      <span class="prompt-text">Здравствуйте! Меня зовут Иван, я основатель студии AIPL. <br><br>Если у вас есть вопросы или нужна консультация нашей команды – готовы ответить на ваши вопросы!</span>
     </div>
-    <button id="open-chat">Chat with us</button>
+  </div>
 
-    <script>
-        document.getElementById('open-chat').addEventListener('click', function() {
-            document.getElementById('chat-widget').style.display = 'flex';
-            this.style.display = 'none';
-        });
+  <!-- Окно чата -->
+  <div class="chat-window" id="chatWindow">
+    <div class="chat-header">
+      <img src="https://firebasestorage.googleapis.com/v0/b/aipl-32794.appspot.com/o/%D0%9B%D0%BE%D0%B3%D0%BE%20%D0%BA%D0%B2%D0%B0%D0%B4%D1%80%D0%B0%D1%82%20%D1%81%20%D1%87%D0%B5%D1%80%D0%BD%D1%8B%D0%BC%20%D1%84%D0%BE%D0%BD%D0%BE%D0%BC.png?alt=media&token=784173ac-1420-4662-b8fa-d03ef91ea637" alt="Profile Icon">
+      <span>AIPL Team</span>
+    </div>
+    <div class="chat-messages" id="chatMessages"></div>
+    <div class="chat-input">
+      <!-- Поле ввода будет динамически изменяться -->
+    </div>
+  </div>
 
-        document.getElementById('close-chat').addEventListener('click', function() {
-            document.getElementById('chat-widget').style.display = 'none';
-            document.getElementById('open-chat').style.display = 'block';
-        });
+  <script>
+    let chatOpened = false;
+    let initialMessagesShown = false;
 
-        document.getElementById('send-message').addEventListener('click', function() {
-            const message = document.getElementById('chat-input').value;
-            if (message.trim() !== '') {
-                const messageElement = document.createElement('div');
-                messageElement.textContent = message;
-                document.getElementById('chat-messages').appendChild(messageElement);
-                document.getElementById('chat-input').value = '';
-                // Отправка сообщения на сервер для обработки ботом
-                sendMessageToServer(message);
-            }
-        });
+    // Функция для открытия/закрытия окна чата
+    function toggleChat() {
+      const chatWindow = document.getElementById('chatWindow');
+      chatWindow.classList.toggle('open');
 
-        function sendMessageToServer(message) {
-            fetch('https://your-n8n-server-url/webhook/chat', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ message: message })
-            })
-            .then(response => response.json())
-            .then(data => {
-                const botMessageElement = document.createElement('div');
-                botMessageElement.textContent = data.response;
-                document.getElementById('chat-messages').appendChild(botMessageElement);
-            })
-            .catch(error => console.error('Error:', error));
+      const chatLauncher = document.querySelector('.chat-launcher');
+      if (chatWindow.classList.contains('open')) {
+        chatLauncher.classList.add('no-animation');
+        chatOpened = true;
+        hideChatPrompt();
+
+        if (!initialMessagesShown) {
+          showInitialMessages();
+          initialMessagesShown = true;
         }
-    </script>
+      } else {
+        chatLauncher.classList.remove('no-animation');
+        chatOpened = false;
+      }
+    }
+
+    // Функция для отображения сообщения рядом с иконкой
+    function showChatPrompt() {
+      if (!chatOpened) {
+        const chatPrompt = document.getElementById('chatPrompt');
+        chatPrompt.style.display = 'flex';
+      }
+    }
+
+    // Функция для скрытия сообщения рядом с иконкой
+    function hideChatPrompt() {
+      const chatPrompt = document.getElementById('chatPrompt');
+      chatPrompt.style.display = 'none';
+    }
+
+    // Таймер для отображения сообщения через 10 секунд
+    setTimeout(showChatPrompt, 10000);
+
+    // Функция для отображения начальных сообщений
+    function showInitialMessages() {
+      addMessage('Здравствуйте! <br>Я ИИ-консультант студии AIPL, с удовольствием постараюсь вам помочь', 'bot');
+
+      setTimeout(() => {
+        addMessage('Позвольте узнать, как к вам можно обращаться?', 'bot');
+        showContactForm();
+      }, 2000); // Второе сообщение через 2 секунды
+    }
+
+    // Функция для отображения формы контактов
+    function showContactForm() {
+      const chatInput = document.querySelector('.chat-input');
+
+      chatInput.innerHTML = `
+        <div class="contact-form">
+          <input type="text" id="nameInput" placeholder="Ваше имя">
+          <input type="text" id="contactInput" placeholder="Телефон / Email / Telegram-username">
+          <button onclick="submitContactInfo()">Подтвердить</button>
+        </div>
+      `;
+    }
+
+    // Функция для обработки отправки контактной информации
+    function submitContactInfo() {
+      const nameInput = document.getElementById('nameInput').value.trim();
+      const contactInput = document.getElementById('contactInput').value.trim();
+
+      if (nameInput && contactInput) {
+        // Здесь можно отправить контактную информацию на сервер
+
+        // Восстанавливаем обычное поле ввода сообщений
+        const chatInput = document.querySelector('.chat-input');
+        chatInput.innerHTML = `
+          <input type="text" id="userInput" placeholder="Напишите нам..." onkeydown="handleKeyPress(event)">
+          <button onclick="sendMessage()">Отправить</button>
+        `;
+        // Отправляем подтверждающее сообщение
+        addMessage(`Спасибо, ${nameInput}! Чем я могу вам помочь?`, 'bot');
+      } else {
+        alert('Пожалуйста, заполните все поля.');
+      }
+    }
+
+    async function addMessage(content, type) {
+      const chatMessages = document.getElementById('chatMessages');
+      const messageElement = document.createElement('div');
+      messageElement.classList.add('message', type === 'bot' ? 'bot-message' : 'user-message');
+      messageElement.innerHTML = content;
+      chatMessages.appendChild(messageElement);
+      chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+
+    async function sendMessage() {
+      const userInput = document.getElementById('userInput');
+      const userMessage = userInput.value.trim();
+      if (userMessage) {
+        addMessage(userMessage, 'user');
+        userInput.value = '';
+
+        try {
+          const response = await fetch('https://patijoseg.beget.app/webhook-test/c59f8877-34ab-486a-89c4-31eae7339604', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ message: userMessage })
+          });
+
+          if (response.ok) {
+            const data = await response.json();
+            if (data && data.response) {
+              addMessage(data.response, 'bot');
+            } else {
+              addMessage('Ошибка: Некорректный формат ответа от сервера.', 'bot');
+            }
+          } else {
+            addMessage('Ошибка: Не удалось получить ответ от бота.', 'bot');
+          }
+        } catch (error) {
+          addMessage('Ошибка: Не удалось подключиться к серверу.', 'bot');
+        }
+      }
+    }
+
+    function handleKeyPress(event) {
+      if (event.key === 'Enter' && !event.shiftKey) {
+        event.preventDefault();
+        sendMessage();
+      }
+    }
+  </script>
 </body>
 </html>
